@@ -2,10 +2,10 @@ name: Daily PR Notification (slack)
 
 on:
   schedule:
-    # cron 형식: 분 시 일 월 요일
-    - cron: '* 1 * * *'  # UTC 00:06 = KST 14:00 (오후 2시)
+    # cron format: minute hour day-of-month month day-of-week
+    - cron: '* 1 * * *' 
   
-  # 수동 실행도 가능하도록 추가
+  # add manual execution
   workflow_dispatch:
 
 jobs:
@@ -37,5 +37,5 @@ jobs:
     - name: Handle errors
       if: failure()
       run: |
-        echo "스크립트 실행 중 오류가 발생했습니다."
-        # 여기에 에러 알림 로직을 추가할 수 있습니다 
+        echo "Error occurred while running the script."
+        # add error notification logic here

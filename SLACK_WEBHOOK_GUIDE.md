@@ -49,6 +49,9 @@ send_slack_rich_message(
     "good",  # 색상: good(초록), warning(노랑), danger(빨강)
     "#general"
 )
+
+둘이 다른건
+text만 사용할지, 더 많은 설정이 가능한 attachments를 사용할 것인지
 ```
 
 ### 3.3 GitHub PR 알림
