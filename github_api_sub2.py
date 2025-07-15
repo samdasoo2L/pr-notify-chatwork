@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # GitHub API 설정
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_TOKEN = os.getenv("PR_GITHUB_TOKEN")
 GITHUB_API_BASE = "https://api.github.com"
 
 def get_user_repositories(username, repo_type="all"):

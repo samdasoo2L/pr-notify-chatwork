@@ -10,7 +10,7 @@ load_dotenv()
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 
 # GitHub API 설정
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_TOKEN = os.getenv("PR_GITHUB_TOKEN")
 GITHUB_API_BASE = "https://api.github.com"
 
 def get_repositories(owner, repo_type="all"):

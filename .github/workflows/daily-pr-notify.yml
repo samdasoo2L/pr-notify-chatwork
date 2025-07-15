@@ -30,7 +30,7 @@ jobs:
     - name: Create .env file
       run: |
         echo "SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" > .env
-        echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env
+        echo "PR_GITHUB_TOKEN=${{ secrets.PR_GITHUB_TOKEN }}" >> .env
         
     - name: Run PR notification script
       run: python github_api_notify.py
