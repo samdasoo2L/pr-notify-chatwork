@@ -46,7 +46,7 @@ def get_repositories(owner, repo_type="all"):
         return repositories
         
     except requests.exceptions.RequestException as e:
-        print(f"Repository 목록 가져오기 중 오류 발생: {e}")
+        print(f"Repository list fetching failed: {e}")
         return []
 
 def get_pull_requests(owner, repo, state="open"):
@@ -69,24 +69,24 @@ def get_pull_requests(owner, repo, state="open"):
     url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/pulls"
     params = {
         "state": state,
-        "per_page": 100,  # 한 번에 가져올 최대 개수
+        "per_page": 100,  # max number of pull requests to fetch at once
         "sort": "updated",
         "direction": "desc"
     }
     
     try:
         response = requests.get(url, headers=headers, params=params)
-        # HTTP 응답 상태 코드를 확인하고, 오류가 있으면 예외를 발생시키는 함수입니다.
+        # check HTTP response status code and raise exception if there is an error
         response.raise_for_status()
         
         pull_requests = response.json()
         return pull_requests
         
     except requests.exceptions.RequestException as e:
-        print(f"API 요청 중 오류 발생: {e}")
+        print(f"API request failed: {e}")
         return []
     except json.JSONDecodeError as e:
-        print(f"JSON 파싱 오류: {e}")
+        print(f"JSON parsing failed: {e}")
         return []
 
 def get_all_pull_requests(owner, state="open", repo_type="private"):
@@ -232,13 +232,13 @@ def make_pull_requests_msg(all_pull_requests):
 
 def send_slack_message(message, channel="#general", username="Bot", icon_emoji=":robot_face:"):
     """
-    Slack webhook을 사용하여 메시지를 보냅니다.
+    Send message using Slack webhook.
     
     Args:
-        message (str): 보낼 메시지
-        channel (str): 채널명 (예: "#general", "@username")
-        username (str): 봇 이름
-        icon_emoji (str): 봥 아이콘 이모지
+        message (str): message to send
+        channel (str): channel name (e.g. "#general", "@username")
+        username (str): bot name
+        icon_emoji (str): bot icon emoji
     """
     payload = {
         "text": message,
@@ -247,15 +247,15 @@ def send_slack_message(message, channel="#general", username="Bot", icon_emoji="
         "icon_emoji": icon_emoji
     }
     if SLACK_WEBHOOK_URL is None:
-        print("SLACK_WEBHOOK_URL이 설정되어 있지 않습니다.")
+        print("SLACK_WEBHOOK_URL need to be set.")
         return False
     try:
         response = requests.post(SLACK_WEBHOOK_URL, json=payload)
         response.raise_for_status()
-        print(f"메시지 전송 성공: {response.status_code}")
+        print(f"Message sent successfully: {response.status_code}")
         return True
     except requests.exceptions.RequestException as e:
-        print(f"메시지 전송 실패: {e}")
+        print(f"Message sending failed: {e}")
         return False
 
 
