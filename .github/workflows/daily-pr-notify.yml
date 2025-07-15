@@ -3,7 +3,7 @@ name: Daily PR Notification (slack)
 on:
   schedule:
     # cron 형식: 분 시 일 월 요일
-    - cron: '*/5 * * * *'  # UTC 05:06 = KST 14:06 (오후 2시 6분)
+    - cron: '* 1 * * *'  # UTC 00:06 = KST 14:00 (오후 2시)
   
   # 수동 실행도 가능하도록 추가
   workflow_dispatch:
