@@ -1,8 +1,12 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # GitHub API 설정
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_API_BASE = "https://api.github.com"
 
 def get_user_repositories(username, repo_type="all"):

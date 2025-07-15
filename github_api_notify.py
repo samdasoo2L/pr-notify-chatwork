@@ -1,9 +1,16 @@
 import requests
 import json
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Slack Webhook URL (실제 webhook URL로 교체하세요)
+SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 
 # GitHub API 설정
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_API_BASE = "https://api.github.com"
 
 def get_repositories(owner, repo_type="all"):
@@ -93,6 +100,8 @@ def get_all_pull_requests(owner, state="open", repo_type="private"):
     
     Returns:
         dict: repository별 pull request 목록
+        없으면 패스 있으면 레포이름에 레포지토리로 레포정보랑 풀리퀘스트로 풀리퀘스트 정보 전달
+        { 레포이름 : { "repository": 레포정보, "pull_requests": 풀리퀘스트정보 } , ...}
     """
     print(f"'{owner}'의 {repo_type} repository들을 검색 중...")
     
@@ -129,7 +138,6 @@ def get_all_pull_requests(owner, state="open", repo_type="private"):
             print(f"    → {len(pull_requests)}개의 PR 발견")
         else:
             print(f"    → PR 없음")
-            
     return all_pull_requests
 
 def format_pull_request(pr):
@@ -150,7 +158,35 @@ def format_pull_request(pr):
         "labels": [label["name"] for label in pr["labels"]]
     }
 
-def print_all_pull_requests(all_pull_requests):
+def make_pull_requests_msg(all_pull_requests):
+    """
+    모든 repository의 pull request를 출력합니다.
+    """
+    if not all_pull_requests:
+        print("어떤 repository에서도 pull request를 찾을 수 없습니다.")
+        return
+
+    msg = "*모든 PR 목록:*\n"
+    for repo_name, data in all_pull_requests.items():
+        repository = data["repository"]
+        pull_requests = data["pull_requests"]
+
+        msg += f"📁 Repository: {repo_name}\n"
+        msg += f"   URL: {repository['html_url']}\n"
+        msg += f"   설명: {repository.get('description', '설명 없음')}\n"
+        msg += f"   PR 개수: {len(pull_requests)}\n"
+        msg += f"{'='*50}\n"
+        for pr in pull_requests:
+            formatted_pr = format_pull_request(pr)
+            msg += f"  #{formatted_pr['number']} - {formatted_pr['title']}\n"
+            msg += f"    작성자: {formatted_pr['author']}\n"
+            msg += f"    본문: {formatted_pr['body']}\n"
+            msg += f"    생성일: {formatted_pr['created_at']}\n"
+            msg += f"    URL: {formatted_pr['url']}\n"
+            msg += f"{'='*50}\n"
+    return msg
+
+# def print_all_pull_requests(all_pull_requests):
     """
     모든 repository의 pull request를 출력합니다.
     """
@@ -162,6 +198,7 @@ def print_all_pull_requests(all_pull_requests):
     print(f"\n{'='*60}")
     print(f"총 {len(all_pull_requests)}개 repository에서 {total_prs}개의 Pull Request를 찾았습니다!")
     print(f"{'='*60}\n")
+
     
     for repo_name, data in all_pull_requests.items():
         repository = data["repository"]
@@ -191,12 +228,40 @@ def print_all_pull_requests(all_pull_requests):
                 print("    [DRAFT]")
             
             print()
-        
-        print()
+
+
+def send_slack_message(message, channel="#general", username="Bot", icon_emoji=":robot_face:"):
+    """
+    Slack webhook을 사용하여 메시지를 보냅니다.
+    
+    Args:
+        message (str): 보낼 메시지
+        channel (str): 채널명 (예: "#general", "@username")
+        username (str): 봇 이름
+        icon_emoji (str): 봥 아이콘 이모지
+    """
+    payload = {
+        "text": message,
+        "channel": channel,
+        "username": username,
+        "icon_emoji": icon_emoji
+    }
+    if SLACK_WEBHOOK_URL is None:
+        print("SLACK_WEBHOOK_URL이 설정되어 있지 않습니다.")
+        return False
+    try:
+        response = requests.post(SLACK_WEBHOOK_URL, json=payload)
+        response.raise_for_status()
+        print(f"메시지 전송 성공: {response.status_code}")
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"메시지 전송 실패: {e}")
+        return False
+
 
 def main():
     """
-    메인 함수 - 사용 예시
+    메인 함수
     """
     # 여기에 실제 사용자/organization 정보를 입력하세요
     owner = "samdasoo2l"  # 사용자명 또는 organization 이름
@@ -207,7 +272,8 @@ def main():
     # 모든 private repository에서 open PR 가져오기
     print("\n[모든 Private Repository의 Open Pull Requests]")
     all_open_prs = get_all_pull_requests(owner, state="open", repo_type="private")
-    print_all_pull_requests(all_open_prs)
+    msg = make_pull_requests_msg(all_open_prs)
+    send_slack_message(msg, "#general")
     
     # 모든 private repository에서 closed PR 가져오기 (최근 것들)
     # print("\n[모든 Private Repository의 Recent Closed Pull Requests]")
